@@ -52,7 +52,7 @@ def main():
     animation = AnimationClient(langchain_model=langchain_model,
                                 agent_workspace_path="./zagent/utils/agent_workspace")
     
-    target_index = 2
+    target_index = 1
     target_topic_name = split.topics[target_index].name
 
     # Animate a single topic

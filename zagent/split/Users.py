@@ -96,7 +96,7 @@ from .models import AnimationResult
 from zagent.prompts.animate import SCENE_BOILERPLATE, MANIM_CODING_AGENT_PROMPT, format_storyboard_prompt
 from deepagents import create_deep_agent
 from deepagents.backends import FilesystemBackend
-
+import time, subprocess, copy
 
 
 class AnimationClient:
@@ -146,6 +146,45 @@ class AnimationClient:
             system_prompt=MANIM_CODING_AGENT_PROMPT,
             backend=FilesystemBackend(root_dir=str(self.agent_workspace_path), virtual_mode=True),
         )
+    
+    def _render_scene(self) -> subprocess.CompletedProcess:
+        """Run manim to render the scene and stream output to console."""
+        my_env = os.environ.copy()
+        # Add TeX to PATH for LaTeX rendering (macOS/Linux)
+        my_env["PATH"] = "/Library/TeX/texbin:" + os.environ.get("PATH", "")
+
+        print("\n🎬 --- STARTING MANIM RENDER --- 🎬")
+        
+        # Use Popen to stream the output in real-time
+        process = subprocess.Popen(
+            ["uv", "run", "manim", "-ql", "scene.py"],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT, # Redirect errors to the standard output stream
+            text=True,
+            cwd=str(self.animation_workspace_path),
+            env=my_env,
+            bufsize=1, # Line buffered
+        )
+
+        output_log = []
+        
+        # Read the output line-by-line as Manim generates it
+        if process.stdout:
+            for line in process.stdout:
+                print(line, end="") # Print to your terminal instantly
+                output_log.append(line) # Save it for the final result
+                
+        # Wait for the process to actually finish
+        process.wait() 
+        print("\n🎬 --- MANIM RENDER COMPLETE --- 🎬\n")
+
+        # Reconstruct and return the CompletedProcess object so your other code doesn't break
+        return subprocess.CompletedProcess(
+            args=process.args,
+            returncode=process.returncode,
+            stdout="".join(output_log),
+            stderr=""
+        )
 
 
     def animate_single(self,
@@ -183,6 +222,28 @@ class AnimationClient:
             on_progress(topic_index, 0, "Running coding agent...")
         
 
+        if ratelimit > 0:
+            time.sleep(ratelimit)
+            
+        print("\n🧠 --- AGENT THINKING & CODING --- 🧠")
+        
+        # Use .stream() to watch the agent work step-by-step
+        final_state = None
+        for chunk in agent.stream({"messages": [{"role": "user", "content": prompt}]}):
+            # Print the raw chunk to the console so you can see the agent using tools
+            print(chunk)
+            final_state = chunk # Keep track of the last chunk for the final result
+            
+        print("🧠 --- AGENT FINISHED --- 🧠\n")
+        
+        result = final_state
+        print(f"[step-3] Final Agent State =======================> {result}")
+
+
+        ## Render ## 
+        manim_result = self._render_scene()
+        print(f"[step-3] Manim result =======================> {manim_result}")
+        
 
 
             

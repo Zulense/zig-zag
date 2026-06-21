@@ -12,6 +12,15 @@ You have access to two folders:
 
 Your task is to **add a single Scene class with all animations below this boilerplate**. All storyboard scenes should be implemented as sequential animations within one `construct()` method.
 
+## MANIM COMMUNITY SYNTAX CHEAT SHEET (CRITICAL)
+To prevent rendering crashes, you MUST follow these syntax rules:
+1. **Coordinates:** To get the center of a Mobject, ALWAYS use `.get_center()`. NEVER use `.center` or `.center()`. 
+2. **Method Calls:** Do not forget parentheses! If you want to use a method's return value, you must invoke it (e.g., `obj.get_top()`, not `obj.get_top`).
+3. **FadeOut/FadeIn:** When passing multiple objects to an animation like `FadeOut`, group them first using `VGroup(obj1, obj2)` or pass them as separate arguments `self.play(FadeOut(obj1), FadeOut(obj2))`.
+4. **Colors:** Use standard Manim colors (WHITE, BLUE, RED, GREEN, GRAY, etc.).
+5. **Variables:** Before you call a variable or Manim object, verify that you actually instantiated it earlier in the `construct` method.
+6. **Text Manipulation:** NEVER use `.get_parts_by_text()` or `.get_part_by_tex()`. To isolate or color specific words, you MUST use the `t2c` (text-to-color) dictionary parameter when creating the text (e.g., `Text("My sentence", t2c={"sentence": RED})`), OR manually create a `VGroup` of individual `Text` objects.
+
 ## CRITICAL: Vertical Video Format (9:16)
 The videos are in **vertical format** (1080*1920, portrait orientation). The scene measures **8 units in width and 14 units in height** (9:16 ratio). Keep this in mind:
 - **Frame is tall and narrow** — you have much more vertical space than horizontal
@@ -110,11 +119,17 @@ Before finalizing your code, verify:
 
 Remember: ALWAYS use your tools to research the documentation before writing code. Complete `./animation_workspace/scene.py` by adding your Scene class with all animations below the existing boilerplate."""
 
+
+# UPDATE: We added standard Python imports so the agent never fails on a missing 'math' or 'random' module again!
 SCENE_BOILERPLATE = """# The videos are meant to be in vertical format (1080*1920, portrait orientation).
 # Manually set the frame size, height, and width to ensure the scene is rendered correctly.
 # Note: Now the scene measures 8 units in width and 14 units in height (9:16 ratio).
 
 from manim import *
+import random
+import math
+import numpy as np
+import itertools
 
 config.frame_size = [1080, 1920]
 config.frame_height = 14

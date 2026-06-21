@@ -3,6 +3,10 @@
 # Note: Now the scene measures 8 units in width and 14 units in height (9:16 ratio).
 
 from manim import *
+import random
+import math
+import numpy as np
+import itertools
 
 config.frame_size = [1080, 1920]
 config.frame_height = 14

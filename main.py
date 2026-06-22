@@ -27,6 +27,39 @@ def main():
     for i, topic in enumerate(split.topics):
         print(f"  Topic {i}: {topic.name}")
 
+    # -------------------------------------------------------------------------------------
+    # 1. Write the topic name you want to animate
+    desired_topic_name = "Self-Attention"
+
+    # 2. Dynamically calculate the target_index based on the name
+    target_index = 0
+    best_match_score = 0
+
+    # Helper function to clean text: replaces punctuation with spaces, then makes a set
+    def extract_words(text):
+        clean_text = ''.join(c if c.isalnum() else ' ' for c in text.lower())
+        return set(clean_text.split())
+
+    search_words = extract_words(desired_topic_name)
+
+    for i, topic in enumerate(split.topics):
+        topic_words = extract_words(topic.name)
+        
+        # Count how many words match between your target and the AI's output
+        match_score = len(search_words.intersection(topic_words))
+        
+        # Keep track of the highest scoring index
+        if match_score > best_match_score:
+            best_match_score = match_score
+            target_index = i
+
+    # 3. Safely set the target topic name using the dynamically found index
+    target_topic_name = split.topics[target_index].name
+    print(f"🎯 Dynamically matched to Index {target_index}: '{target_topic_name}'")
+   
+
+    # -------------------------------------------------------------------------------------------------------
+
 
     ## Generate story of each topics.
 
@@ -52,8 +85,8 @@ def main():
     animation = AnimationClient(langchain_model=langchain_model,
                                 agent_workspace_path="./zagent/utils/agent_workspace")
     
-    target_index = 1
-    target_topic_name = split.topics[target_index].name
+    # target_index = 1
+    # target_topic_name = split.topics[target_index].name
 
     # Animate a single topic
     result = animation.animate_single(

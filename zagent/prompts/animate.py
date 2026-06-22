@@ -13,13 +13,34 @@ You have access to two folders:
 Your task is to **add a single Scene class with all animations below this boilerplate**. All storyboard scenes should be implemented as sequential animations within one `construct()` method.
 
 ## MANIM COMMUNITY SYNTAX CHEAT SHEET (CRITICAL)
-To prevent rendering crashes, you MUST follow these syntax rules:
-1. **Coordinates:** To get the center of a Mobject, ALWAYS use `.get_center()`. NEVER use `.center` or `.center()`. 
-2. **Method Calls:** Do not forget parentheses! If you want to use a method's return value, you must invoke it (e.g., `obj.get_top()`, not `obj.get_top`).
-3. **FadeOut/FadeIn:** When passing multiple objects to an animation like `FadeOut`, group them first using `VGroup(obj1, obj2)` or pass them as separate arguments `self.play(FadeOut(obj1), FadeOut(obj2))`.
-4. **Colors:** Use standard Manim colors (WHITE, BLUE, RED, GREEN, GRAY, etc.).
-5. **Variables:** Before you call a variable or Manim object, verify that you actually instantiated it earlier in the `construct` method.
-6. **Text Manipulation:** NEVER use `.get_parts_by_text()` or `.get_part_by_tex()`. To isolate or color specific words, you MUST use the `t2c` (text-to-color) dictionary parameter when creating the text (e.g., `Text("My sentence", t2c={"sentence": RED})`), OR manually create a `VGroup` of individual `Text` objects.
+To prevent rendering crashes, you MUST obey these 10 definitive syntax rules:
+
+1. **Text Extraction & Highlighting:** NEVER use `.get_parts_by_text()`, `.get_part_by_tex()`, or `.get_submobject_by_color()`. They are deprecated or hallucinations.
+   - Statically coloring a word: `Text("Hello World", t2c={"World": RED})`
+   - **CRITICAL for animating/pointing to specific words:** You MUST create a `VGroup` of individual words so you can access them by index. 
+     Example: `sentence = VGroup(*[Text(w) for w in "My sentence here".split()]).arrange(RIGHT, buff=0.1)`
+     Then access the word by index: `my_arrow.next_to(sentence[1], DOWN)`
+2. **Screen Positioning:** Do NOT use `self.camera.frame` for alignment (e.g., `.align_to(self.camera.frame, DOWN)`). This causes an AttributeError in standard Scenes. ALWAYS use `.to_edge(DOWN)` or `.to_corner(DL)`.
+3. **Math & LaTeX:** ALWAYS use raw strings for `MathTex` to prevent Python escape sequence errors (e.g., `MathTex(r"\\frac{1}{2}")`). 
+4. **String Escaping in JSON:** When using `edit_file`, write standard Python strings. Do NOT over-escape quotes. 
+   - CORRECT: `Text("?")` or `Text("didn't")`
+   - WRONG: `Text(\\"?\\")` or `Text("didn\\'t")`
+   - WRONG: Do not leave trailing backslashes (`\\`) at the end of Python lines.
+5. **Coordinates & Method Calls:** To get a Mobject's position, ALWAYS use `.get_center()`, `.get_top()`, `.get_right()`, etc. NEVER use `.center` or `.center()`. Always include parentheses for method calls.
+6. **Text Properties & Alignment:** When using `Text()`, pass parameters directly. 
+   - Do NOT invent dictionary configs like `t_c_config` or `text_config`. 
+   - Do NOT use `text_align` or `alignment` parameters inside `Text()` (they will cause an error). Manim centers text by default! 
+   - CORRECT Example: `Text("My text", line_spacing=1.2)`
+7. **Animations & Clearing the Screen:** Pass multiple objects to `self.play()` as separate arguments: `self.play(FadeOut(obj1), FadeOut(obj2))`. To clear the screen between major storyboard scenes, use `self.play(*[FadeOut(m) for m in self.mobjects])`.
+8. **Colors & Shading:** - Colors that HAVE an A-E scale (A is lightest, E is darkest): `BLUE`, `TEAL`, `GREEN`, `YELLOW`, `GOLD`, `RED`, `MAROON`, `PURPLE`, `GRAY`. (Example: `BLUE_E`, `GOLD_A`).
+   - Colors that DO NOT have an A-E scale: `WHITE`, `BLACK`, `ORANGE`, `PINK`. NEVER use `ORANGE_A` or `WHITE_E` (they will cause a NameError).
+   - NEVER use English modifiers like `DARK_GREEN` or `LIGHT_BLUE`.
+9. **Variables:** Before you call a variable or Manim object, verify that you actually instantiated it earlier in the `construct` method.
+10. **AVOID JSON CRASHES (CHUNK YOUR CODE):** You are generating a massive amount of code. Do NOT try to write all 300+ lines of the Scene class in a single `edit_file` tool call. The massive string will cause a JSON `MALFORMED_FUNCTION_CALL` crash. 
+   - First, use the tool to append the `class MyScene(Scene):` definition and the code for Scene 1.
+   - Then, make a second tool call to append Scene 2 & 3.
+   - Continue appending in smaller chunks until the `construct` method is finished.
+11. **Dashed Arrows:** There is NO `DashedArrow` class in Manim. If you need a dashed arrow, you MUST use `DashedLine(start, end).add_tip()`.
 
 ## CRITICAL: Vertical Video Format (9:16)
 The videos are in **vertical format** (1080*1920, portrait orientation). The scene measures **8 units in width and 14 units in height** (9:16 ratio). Keep this in mind:
@@ -87,11 +108,12 @@ You have documentation tools available and you MUST use them before writing any 
 - `reference.md` - Full hierarchical module index (lists all classes organized by module)
 
 ## Required Workflow
-1. **Read the scene file**: Use `read_file ./animation_workspace/scene.py` to see the existing boilerplate
-2. **Identify what you need**: What classes/methods will implement the storyboard animations?
-3. **Search the docs**: Use `glob` or `grep` to find relevant documentation in `manim_docs/`
-4. **Read the details**: Use `read_file` to get exact parameters, signatures, and examples
-5. **Complete the scene**: Use `edit_file` to add your Scene class code to `./animation_workspace/scene.py`
+## Required Workflow (STRICTLY ENFORCED)
+1. **Read the scene file**: Use `read_file ./animation_workspace/scene.py` to see the existing boilerplate.
+2. **Mandatory Planning**: You MUST break the storyboard down into smaller chunks. 
+3. **Chunk 1 (Setup & Intro)**: Use `edit_file` to append `class MyScene(Scene):`, `def construct(self):`, and Scenes 0 through 2. Stop and execute this tool call.
+4. **Chunk 2, 3, 4 (Middle & End)**: Make SEPARATE `edit_file` tool calls to append the remaining scenes in batches of 2 or 3. To append, find the last `self.wait()` in the file and replace it with `self.wait() \n\n # Next Scene...`
+5. **CRITICAL LIMIT:** NEVER write more than 3 scenes in a single `edit_file` tool call. If you try to write the whole script at once, the system will crash with a JSON error.
 
 ## Key Manim Patterns (for reference)
 - Scenes: Subclass `Scene`, implement `construct()`, use `self.play()` for animations
@@ -119,7 +141,6 @@ Before finalizing your code, verify:
 
 Remember: ALWAYS use your tools to research the documentation before writing code. Complete `./animation_workspace/scene.py` by adding your Scene class with all animations below the existing boilerplate."""
 
-
 # UPDATE: We added standard Python imports so the agent never fails on a missing 'math' or 'random' module again!
 SCENE_BOILERPLATE = """# The videos are meant to be in vertical format (1080*1920, portrait orientation).
 # Manually set the frame size, height, and width to ensure the scene is rendered correctly.
@@ -135,7 +156,6 @@ config.frame_size = [1080, 1920]
 config.frame_height = 14
 config.frame_width = 8
 """
-
 
 def format_storyboard_prompt(
     breakdown,

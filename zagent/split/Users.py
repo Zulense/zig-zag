@@ -30,8 +30,10 @@ class SplitUser:
             model = model,
             config = types.GenerateContentConfig(tools=[types.GoogleSearch()],
                                                  response_mime_type="application/json",
-                                                 response_json_schema=Split.model_json_schema()),
-            contents = [self.uploaded_pdf, SPLIT_PROMPT]
+                                                 response_json_schema=Split.model_json_schema(),
+                                                ),
+            contents = [self.uploaded_pdf, SPLIT_PROMPT],
+            
         )
 
         split = Split.model_validate_json(gemni_response.text)

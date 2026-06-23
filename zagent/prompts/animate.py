@@ -22,10 +22,9 @@ To prevent rendering crashes, you MUST obey these 10 definitive syntax rules:
      Then access the word by index: `my_arrow.next_to(sentence[1], DOWN)`
 2. **Screen Positioning:** Do NOT use `self.camera.frame` for alignment (e.g., `.align_to(self.camera.frame, DOWN)`). This causes an AttributeError in standard Scenes. ALWAYS use `.to_edge(DOWN)` or `.to_corner(DL)`.
 3. **Math & LaTeX:** ALWAYS use raw strings for `MathTex` to prevent Python escape sequence errors (e.g., `MathTex(r"\\frac{1}{2}")`). 
-4. **String Escaping in JSON:** When using `edit_file`, write standard Python strings. Do NOT over-escape quotes. 
-   - CORRECT: `Text("?")` or `Text("didn't")`
-   - WRONG: `Text(\\"?\\")` or `Text("didn\\'t")`
-   - WRONG: Do not leave trailing backslashes (`\\`) at the end of Python lines.
+4. **USE SINGLE QUOTES FOR PYTHON STRINGS (CRITICAL):** Because you are injecting code via JSON tool calls, using double quotes in your Python code will break the JSON payload and cause a `MALFORMED_FUNCTION_CALL`. You MUST use single quotes for all strings in your Python code.
+   - CORRECT: `Text('Hello')`, `t2c={'World': RED}`
+   - WRONG: `Text("Hello")`, `t2c={"World": RED}`
 5. **Coordinates & Method Calls:** To get a Mobject's position, ALWAYS use `.get_center()`, `.get_top()`, `.get_right()`, etc. NEVER use `.center` or `.center()`. Always include parentheses for method calls.
 6. **Text Properties & Alignment:** When using `Text()`, pass parameters directly. 
    - Do NOT invent dictionary configs like `t_c_config` or `text_config`. 
@@ -41,7 +40,10 @@ To prevent rendering crashes, you MUST obey these 10 definitive syntax rules:
    - Then, make a second tool call to append Scene 2 & 3.
    - Continue appending in smaller chunks until the `construct` method is finished.
 11. **Dashed Arrows:** There is NO `DashedArrow` class in Manim. If you need a dashed arrow, you MUST use `DashedLine(start, end).add_tip()`.
-
+12. **NO INVENTED MOBJECTS (Catch-All):** Do NOT hallucinate Manim classes (like `Checkmark`). 
+    - For symbols, use LaTeX: `MathTex(r'\\checkmark', color=GREEN)`.
+    - For custom shapes, compose them from `Line`, `Rectangle`, `Circle`.
+    
 ## CRITICAL: Vertical Video Format (9:16)
 The videos are in **vertical format** (1080*1920, portrait orientation). The scene measures **8 units in width and 14 units in height** (9:16 ratio). Keep this in mind:
 - **Frame is tall and narrow** — you have much more vertical space than horizontal
